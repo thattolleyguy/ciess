@@ -4,13 +4,19 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.ciess.node.Node;
+import com.ciess.node.NodeRenderer;
 
 public class GameScreen implements Screen{
 
 	Color color = Color.BLUE;
 	boolean wasTouched = false;
+	Node node = new Node();
+	NodeRenderer renderer = new NodeRenderer(node);
+	
 	@Override
 	public void render(float delta) {
+		node.update(delta);
 		
 		if(wasTouched!=Gdx.input.isTouched())
 		{
@@ -23,7 +29,7 @@ public class GameScreen implements Screen{
 		}
 		Gdx.graphics.getGL20().glClearColor(color.r, color.g, color.b, 1);
 		Gdx.graphics.getGL20().glClear(GL20.GL_COLOR_BUFFER_BIT|GL20.GL_DEPTH_BUFFER_BIT);
-		
+		renderer.render(delta);
 		
 	}
 
