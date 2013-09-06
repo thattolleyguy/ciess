@@ -9,26 +9,18 @@ import com.ciess.node.NodeRenderer;
 
 public class GameScreen implements Screen {
 
-	Color color = Color.BLUE;
+	Color color = Color.BLACK;
 	Node node;
 	NodeRenderer renderer;
-	
-	public GameScreen()
-	{
-		node = new Node(1200, 20.0f, 8);
-		renderer =  new NodeRenderer(node);
+
+	public GameScreen() {
+		node = new Node(120, 30f, 2f, 8);
+		renderer = new NodeRenderer(node);
 	}
 
 	@Override
 	public void render(float delta) {
 		node.update(delta);
-
-		if (Gdx.input.justTouched()) {
-			if (color == Color.BLUE)
-				color = Color.BLACK;
-			else
-				color = Color.BLUE;
-		}
 		Gdx.graphics.getGL20().glClearColor(color.r, color.g, color.b, 1);
 		Gdx.graphics.getGL20().glClear(
 				GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);

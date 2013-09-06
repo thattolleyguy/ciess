@@ -33,16 +33,19 @@ public class NodeRenderer {
 		renderDefenders(renderer, node.defenders);
 	}
 
+
 	private void renderDefenders(ShapeRenderer renderer,
 			Collection<Defender> defenders) {
 
 		renderer.begin(ShapeType.Filled);
-		renderer.setColor(Color.RED);
+
 		for (Defender d : defenders) {
 			float offset = d.getSize() / 2;
+			renderer.setColor(d.isHacked ? Color.RED : Color.GRAY);
 			renderer.rect(d.location.x - offset, d.location.y - offset,
 					d.getSize(), d.getSize());
 		}
 		renderer.end();
 	}
+
 }
