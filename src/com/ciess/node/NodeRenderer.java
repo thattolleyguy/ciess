@@ -2,6 +2,7 @@ package com.ciess.node;
 
 import java.util.Collection;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -12,8 +13,8 @@ public class NodeRenderer {
 	Node node;
 
 	public NodeRenderer(Node node) {
-
-		cam = new OrthographicCamera(480, 320);
+		cam = new OrthographicCamera(Gdx.graphics.getWidth(),
+				Gdx.graphics.getHeight());
 		cam.position.set(0, 0, 0);
 		this.node = node;
 
@@ -21,16 +22,26 @@ public class NodeRenderer {
 
 	public void render(float deltaTime) {
 		cam.update();
-		renderDefenders(node.defenders);
-	}
-
-	private void renderDefenders(Collection<Defender> defenders) {
 		ShapeRenderer renderer = new ShapeRenderer();
 		renderer.setProjectionMatrix(cam.combined);
+		renderer.begin(ShapeType.Line);
+		renderer.setColor(Color.WHITE);
+
+		renderer.rect(-Node.NODE_SIZE / 2, -Node.NODE_SIZE / 2, Node.NODE_SIZE,
+				Node.NODE_SIZE);
+		renderer.end();
+		renderDefenders(renderer, node.defenders);
+	}
+
+	private void renderDefenders(ShapeRenderer renderer,
+			Collection<Defender> defenders) {
+
 		renderer.begin(ShapeType.Filled);
 		renderer.setColor(Color.RED);
 		for (Defender d : defenders) {
-			renderer.rect(d.location.x, d.location.y, d.getSize(), d.getSize());
+			float offset = d.getSize() / 2;
+			renderer.rect(d.location.x - offset, d.location.y - offset,
+					d.getSize(), d.getSize());
 		}
 		renderer.end();
 	}

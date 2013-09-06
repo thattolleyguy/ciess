@@ -10,8 +10,14 @@ import com.ciess.node.NodeRenderer;
 public class GameScreen implements Screen {
 
 	Color color = Color.BLUE;
-	Node node = new Node();
-	NodeRenderer renderer = new NodeRenderer(node);
+	Node node;
+	NodeRenderer renderer;
+	
+	public GameScreen()
+	{
+		node = new Node(1200, 20.0f, 8);
+		renderer =  new NodeRenderer(node);
+	}
 
 	@Override
 	public void render(float delta) {

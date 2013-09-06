@@ -7,22 +7,22 @@ public class Defender {
 	int currentTarget;
 	Vector2[] targets;
 	Vector2 velocity;
-	float speed = 0.5f;
+	float speed = 2.0f;
 	private final float size;
 
 	public Defender() {
 		location = new Vector2(0, 0);
-		targets = new Vector2[] { new Vector2(20, 20), new Vector2(-20, -20),
-				new Vector2(-20, 20), new Vector2(20, -20) };
+		targets = new Vector2[] { new Vector2(40, 40), new Vector2(-40, -40),
+				new Vector2(-40, 40), new Vector2(40, -40) };
 		this.size = 8.0f;
 
 		currentTarget = targets.length;
 		changeTarget();
 	}
 
-	public Defender(Vector2 startingLocation, float size, Vector2... targets) {
+	public Defender(float size, Vector2... targets) {
 		this.targets = targets;
-		this.location = startingLocation;
+		this.location = targets[targets.length-1].cpy();
 		this.size = size;
 		changeTarget();
 	}
