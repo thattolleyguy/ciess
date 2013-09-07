@@ -27,12 +27,11 @@ public class NodeRenderer {
 		renderer.begin(ShapeType.Line);
 		renderer.setColor(Color.WHITE);
 
-		renderer.rect(-Node.NODE_SIZE / 2, -Node.NODE_SIZE / 2, Node.NODE_SIZE,
-				Node.NODE_SIZE);
+		renderer.rect(-Node.GRID_SIZE / 2, -Node.GRID_SIZE / 2, Node.GRID_SIZE,
+				Node.GRID_SIZE);
 		renderer.end();
 		renderDefenders(renderer, node.defenders);
 	}
-
 
 	private void renderDefenders(ShapeRenderer renderer,
 			Collection<Defender> defenders) {
@@ -41,9 +40,23 @@ public class NodeRenderer {
 
 		for (Defender d : defenders) {
 			float offset = d.getSize() / 2;
-			renderer.setColor(d.isHacked ? Color.RED : Color.GRAY);
-			renderer.rect(d.location.x - offset, d.location.y - offset,
-					d.getSize(), d.getSize());
+			if (d.isHacked) {
+				float minX = Math.max(-Node.GRID_SIZE / 2, d.location.x
+						- offset);
+				float minY = Math.max(-Node.GRID_SIZE / 2, d.location.y
+						- offset + 1);
+				float maxX = Math.min(Node.GRID_SIZE / 2, d.location.x + offset
+						- 1);
+				float maxY = Math
+						.min(Node.GRID_SIZE / 2, d.location.y + offset);
+				renderer.setColor(Color.RED);
+				renderer.triangle(minX, minY, minX, maxY, maxX, maxY);
+				renderer.triangle(minX, minY, maxX, maxY, maxX, minY);
+			} else {
+				renderer.setColor(Color.GRAY);
+				renderer.rect(d.location.x - offset, d.location.y - offset,
+						d.getSize(), d.getSize());
+			}
 		}
 		renderer.end();
 	}

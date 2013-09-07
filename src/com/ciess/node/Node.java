@@ -2,20 +2,22 @@ package com.ciess.node;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 
 public class Node {
 	Collection<Defender> defenders;
-	public static final float NODE_SIZE = 1000f;
+	public static final float GRID_SIZE = 1000f;
 
 	public Node(int numDefenders, float defenderSize, float defenderSpeed,
 			int maxTargets) {
 		this.defenders = new ArrayList<Defender>(numDefenders);
 		Random r = new Random();
-		float defenderLocationSize = NODE_SIZE - defenderSize;
+		float defenderLocationSize = GRID_SIZE - defenderSize;
 		for (int i = 0; i < numDefenders; i++) {
 
 			int numTargets = maxTargets > 2 ? (r.nextInt(maxTargets - 2) + 2)
@@ -39,8 +41,25 @@ public class Node {
 	public void update(float deltaTime) {
 
 		// Find hacked defender
-		Defender closestToTouch = null;
+		Defender hackedDefender = getHackedDefender();
+		Set<Defender> deadDefenders = new HashSet<Defender>();
+		boolean hasUnhackedDefender = false;
+		for (Defender d : defenders) {
+			d.update(deltaTime);
+			if (!d.isHacked && hackedDefender != null) {
+				d.setDefenderTarget(hackedDefender);
+			}
+			if (d.getSize() <= 0)
+				deadDefenders.add(d);
+		}
+		defenders.removeAll(deadDefenders);
+
+	}
+
+	private Defender getHackedDefender() {
+
 		if (Gdx.input.justTouched()) {
+			Defender closestToTouch = null;
 			Vector2 touchPoint = new Vector2(Gdx.input.getX()
 					- Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2
 					- Gdx.input.getY());
@@ -56,14 +75,10 @@ public class Node {
 					}
 				}
 			}
+			if (closestToTouch != null)
+				closestToTouch.hack();
+			return closestToTouch;
 		}
-		if (closestToTouch != null)
-			closestToTouch.hack();
-		for (Defender d : defenders) {
-			d.update(deltaTime);
-			if (!d.isHacked && closestToTouch != null)
-				d.setDefenderTarget(closestToTouch);
-		}
-
+		return null;
 	}
 }

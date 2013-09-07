@@ -1,6 +1,7 @@
 package com.ciess;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -14,12 +15,17 @@ public class GameScreen implements Screen {
 	NodeRenderer renderer;
 
 	public GameScreen() {
-		node = new Node(120, 30f, 2f, 8);
+		node = new Node(12, 40f,2f, 8);
 		renderer = new NodeRenderer(node);
 	}
 
 	@Override
 	public void render(float delta) {
+		if(Gdx.input.isKeyPressed(Input.Keys.F5))
+		{
+			node = new Node(10, 30f, 2f, 8);
+			renderer = new NodeRenderer(node);
+		}
 		node.update(delta);
 		Gdx.graphics.getGL20().glClearColor(color.r, color.g, color.b, 1);
 		Gdx.graphics.getGL20().glClear(
