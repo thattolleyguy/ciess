@@ -3,51 +3,113 @@ package com.ciess.node;
 import com.badlogic.gdx.math.Vector2;
 
 public class Defender {
+
+	private final float speed;
+	private final float initialSize;
+	private final Node node;
+	private final Vector2[] patrolTargets;
+
 	Vector2 location;
-	int currentTarget;
-	Vector2[] patrolTargets;
 	Vector2 velocity;
-	float speed;
-	private float size;
+	private float currentSize;
+
+	int currentPatrolTargetIndex;
 	boolean isHacked;
 	Defender hackedTarget;
-	int growthSpeed = 2;
+	int growthSpeed;
+	Vector2 targetLocation;
+	boolean dead;
 
-	public Defender(float size, float speed, Vector2... targets) {
+	public Defender(Node node, float size, float speed, Vector2... targets) {
 		this.patrolTargets = targets;
-		this.location = targets[targets.length - 1].cpy();
-		this.size = size;
+		this.currentSize = size;
+		this.initialSize = size;
 		this.speed = speed;
+		this.node = node;
+		reset();
+
+	}
+
+	public void reset() {
+		this.location = patrolTargets[patrolTargets.length - 1].cpy();
+		this.currentSize = initialSize;
+		this.currentPatrolTargetIndex = 0;
+		this.isHacked = false;
+		this.hackedTarget = null;
+		this.growthSpeed = 2;
+		this.dead = false;
+
 		changeTarget();
+		updateTargetLocation();
 	}
 
 	public float getSize() {
-		return size;
+		return currentSize;
 	}
 
 	public void update(float deltaTime) {
-		location = location.add(velocity);
-		// If this defender is hacked, grow
-		if (isHacked)
-			size++;
-		// If this defender has a target, then check for collision
-		else if (hitHackedTarget()) {
-			hackedTarget.size-=growthSpeed;
-			this.size--;
-			if (hackedTarget.size < 0) {
-				hackedTarget = null;
+		handleMovement();
+		handleCollision();
+
+		updateTargetLocation();
+	}
+
+	/**
+	 * Handle collisions which result in changes of directions
+	 */
+	private void handleCollision() {
+		// Check for collision with hacked target.
+		if (hackedTarget != null) {
+			if (hitHackedTarget()) {
+				hackedTarget.currentSize -= growthSpeed;
+				this.currentSize--;
+
+			}
+			// Find next target
+			if (hackedTarget.currentSize <= 0) {
+				this.hackedTarget.dead = true;
+				this.hackedTarget = null;
+				findNextClosestHackedDefender();
+			}
+			if (this.currentSize <= 0) {
+				this.dead = true;
+			}
+
+		}
+		// Check to see if we should target the next patrol point
+		else {
+			if (hitPatrolTarget()) {
 				changeTarget();
 			}
 		}
-		// If this defender isn't hacked and has no target, check to see if we
-		// need to change target
-		else if (hitPatrolTarget()) {
-			changeTarget();
+	}
+
+	/**
+	 * If we're hacked, attempt to grow. Otherwise move to target;
+	 */
+	private void handleMovement() {
+		if (isHacked && !dead)
+			currentSize+=growthSpeed;
+		else
+			location = location.add(velocity);
+	}
+
+	private void updateTargetLocation() {
+		if (isHacked)
+			targetLocation = location;
+		else if (hackedTarget == null)
+			targetLocation = patrolTargets[currentPatrolTargetIndex];
+		else
+			targetLocation = hackedTarget.location;
+
+		setVelocityTarget(targetLocation);
+	}
+
+	public void findNextClosestHackedDefender() {
+		for (Defender d : node.defenders) {
+			if (d.isHacked && d.currentSize > 0)
+				this.setDefenderTarget(d);
 		}
-
-		else if (hackedTarget != null)
-			setVelocityTarget(hackedTarget.location);
-
 	}
 
 	private void setVelocityTarget(Vector2 target) {
@@ -55,16 +117,14 @@ public class Defender {
 	}
 
 	private void changeTarget() {
-		currentTarget++;
-		if (currentTarget >= patrolTargets.length)
-			currentTarget = 0;
-		setVelocityTarget(patrolTargets[currentTarget]);
+		currentPatrolTargetIndex++;
+		if (currentPatrolTargetIndex >= patrolTargets.length)
+			currentPatrolTargetIndex = 0;
 	}
 
 	private boolean hitHackedTarget() {
-		if (hackedTarget != null
-				&& (Math.abs(hackedTarget.location.x - location.x) < ((this.size + hackedTarget.size) / 2))
-				&& (Math.abs(hackedTarget.location.y - location.y) < ((this.size + hackedTarget.size) / 2)))
+		if ((Math.abs(hackedTarget.location.x - location.x) < ((this.currentSize + hackedTarget.currentSize) / 2))
+				&& (Math.abs(hackedTarget.location.y - location.y) < ((this.currentSize + hackedTarget.currentSize) / 2)))
 			return true;
 		return false;
 
@@ -72,8 +132,10 @@ public class Defender {
 
 	private boolean hitPatrolTarget() {
 		if (hackedTarget == null
-				&& (Math.abs(patrolTargets[currentTarget].x - location.x) < size / 2)
-				&& (Math.abs(patrolTargets[currentTarget].y - location.y) < size / 2))
+				&& (Math.abs(patrolTargets[currentPatrolTargetIndex].x
+						- location.x) < currentSize / 2)
+				&& (Math.abs(patrolTargets[currentPatrolTargetIndex].y
+						- location.y) < currentSize / 2))
 			return true;
 		return false;
 	}
@@ -90,7 +152,8 @@ public class Defender {
 
 	public void hack() {
 		this.isHacked = true;
-		this.velocity = Vector2.Zero;
+		this.hackedTarget = null;
 
 	}
+
 }

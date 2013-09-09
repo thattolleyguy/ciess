@@ -6,6 +6,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.ciess.node.Node;
+import com.ciess.node.Node.NodeState;
 import com.ciess.node.NodeRenderer;
 
 public class GameScreen implements Screen {
@@ -13,20 +14,27 @@ public class GameScreen implements Screen {
 	Color color = Color.BLACK;
 	Node node;
 	NodeRenderer renderer;
+	boolean resetPressed = false;
 
 	public GameScreen() {
-		node = new Node(12, 40f,2f, 8);
+		node = new Node(12, 60f, 2f, 8);
 		renderer = new NodeRenderer(node);
 	}
 
 	@Override
 	public void render(float delta) {
-		if(Gdx.input.isKeyPressed(Input.Keys.F5))
-		{
-			node = new Node(10, 30f, 2f, 8);
-			renderer = new NodeRenderer(node);
+		if (Gdx.input.isKeyPressed(Input.Keys.F5)) {
+			resetPressed = true;
+		} else if (resetPressed) {
+			node.reset();
+			color = Color.BLACK;
+			resetPressed = false;
 		}
 		node.update(delta);
+		if (node.nodeState ==NodeState.DEFEATED)
+			color = Color.ORANGE;
+		else if (node.nodeState == NodeState.DEFENDED)
+			color = Color.BLUE;
 		Gdx.graphics.getGL20().glClearColor(color.r, color.g, color.b, 1);
 		Gdx.graphics.getGL20().glClear(
 				GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);

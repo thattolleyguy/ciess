@@ -12,10 +12,43 @@ import com.badlogic.gdx.math.Vector2;
 public class Node {
 	Collection<Defender> defenders;
 	public static final float GRID_SIZE = 1000f;
+	public boolean hasUnhackedDefender = true;
+	public boolean hasHackedDefender = false;
+	final int initialHacks;
+	public int remainingHacks;
+
+	public NodeState nodeState;
 
 	public Node(int numDefenders, float defenderSize, float defenderSpeed,
 			int maxTargets) {
 		this.defenders = new ArrayList<Defender>(numDefenders);
+		this.initialHacks = 4;
+		generateNode(numDefenders, defenderSize, defenderSpeed, maxTargets);
+
+		resetNode();
+	}
+
+	public void reset() {
+		resetDefenders();
+		resetNode();
+	}
+
+	private void resetNode() {
+
+		remainingHacks = initialHacks;
+		nodeState = NodeState.DEFENDING;
+		hasUnhackedDefender = true;
+		hasHackedDefender = false;
+	}
+
+	private void resetDefenders() {
+		for (Defender d : defenders) {
+			d.reset();
+		}
+	}
+
+	private void generateNode(int numDefenders, float defenderSize,
+			float defenderSpeed, int maxTargets) {
 		Random r = new Random();
 		float defenderLocationSize = GRID_SIZE - defenderSize;
 		for (int i = 0; i < numDefenders; i++) {
@@ -33,7 +66,7 @@ public class Node {
 						|| targets[j - 1].dst2(potentialTarget) > 3 * defenderSize)
 					j++;
 			}
-			this.defenders.add(new Defender(defenderSize, defenderSpeed,
+			this.defenders.add(new Defender(this, defenderSize, defenderSpeed,
 					targets));
 		}
 	}
@@ -41,24 +74,31 @@ public class Node {
 	public void update(float deltaTime) {
 
 		// Find hacked defender
-		Defender hackedDefender = getHackedDefender();
-		Set<Defender> deadDefenders = new HashSet<Defender>();
-		boolean hasUnhackedDefender = false;
+		Defender hackedDefender = hackClosestDefender();
+		hasUnhackedDefender = false;
+		hasHackedDefender = false;
 		for (Defender d : defenders) {
-			d.update(deltaTime);
-			if (!d.isHacked && hackedDefender != null) {
-				d.setDefenderTarget(hackedDefender);
+			if (!d.dead) {
+				d.update(deltaTime);
+				if (!d.isHacked) {
+					if (hackedDefender != null) {
+						d.setDefenderTarget(hackedDefender);
+					}
+				}
+				hasHackedDefender = hasHackedDefender || d.isHacked;
+				hasUnhackedDefender = hasUnhackedDefender || !d.isHacked;
 			}
-			if (d.getSize() <= 0)
-				deadDefenders.add(d);
 		}
-		defenders.removeAll(deadDefenders);
+		if (hasUnhackedDefender && !hasHackedDefender && remainingHacks <= 0)
+			nodeState = NodeState.DEFENDED;
+		if (hasHackedDefender && !hasUnhackedDefender)
+			nodeState = NodeState.DEFEATED;
 
 	}
 
-	private Defender getHackedDefender() {
+	private Defender hackClosestDefender() {
 
-		if (Gdx.input.justTouched()) {
+		if (Gdx.input.justTouched() && remainingHacks > 0) {
 			Defender closestToTouch = null;
 			Vector2 touchPoint = new Vector2(Gdx.input.getX()
 					- Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2
@@ -71,14 +111,20 @@ public class Node {
 					if (closestToTouch == null || closestDist > dist) {
 						closestToTouch = d;
 						closestDist = dist;
-
 					}
 				}
 			}
-			if (closestToTouch != null)
+			if (closestToTouch != null) {
 				closestToTouch.hack();
+				remainingHacks--;
+			}
 			return closestToTouch;
 		}
 		return null;
 	}
+
+	public static enum NodeState {
+		DEFENDING, DEFENDED, DEFEATED, CAPTURED
+	}
+
 }
