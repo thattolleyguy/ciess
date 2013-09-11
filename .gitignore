@@ -1,0 +1,6 @@
+ciess/bin
+ciess-android/bin
+ciess-android/gen
+ciess-desktop/bin
+ciess-html/.gwt
+ciess-html/war/WEB-INF/classes
